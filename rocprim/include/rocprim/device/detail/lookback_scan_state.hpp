@@ -187,7 +187,8 @@ public:
             {
                 for (unsigned int j = 0; j < times_through; j++)
 #ifndef __HIP_CPU_RT__
-                    __builtin_amdgcn_s_sleep(1);
+		  //   __builtin_amdgcn_s_sleep(1);
+		  printf("__builtin_amdgcn_s_sleep to implement!\n");
 #else
                     std::this_thread::sleep_for(std::chrono::microseconds{1});
 #endif
@@ -325,7 +326,8 @@ public:
             {
                 for (unsigned int j = 0; j < times_through; j++)
 #ifndef __HIP_CPU_RT__
-                    __builtin_amdgcn_s_sleep(1);
+		  //   __builtin_amdgcn_s_sleep(1);
+		  printf("__builtin_amdgcn_s_sleep to implement!\n");
 #else
                     std::this_thread::sleep_for(std::chrono::microseconds{1});
 #endif
