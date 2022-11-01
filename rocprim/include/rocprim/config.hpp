@@ -79,7 +79,6 @@
     #define ROCPRIM_THREAD_STORE_USE_CACHE_MODIFIERS 1
 #endif
 
-
 // Defines targeted AMD architecture. Supported values:
 // * 803 (gfx803)
 // * 900 (gfx900)
@@ -119,5 +118,20 @@
 #else
 #define ROCPRIM_IF_CONSTEXPR
 #endif
+
+// CHIP-SPV temporary kludges // START //
+constexpr unsigned warpSize = 32;
+
+#ifdef ROCPRIM_THREAD_LOAD_USE_CACHE_MODIFIERS
+#undef ROCPRIM_THREAD_LOAD_USE_CACHE_MODIFIERS
+#endif
+
+#ifdef ROCPRIM_THREAD_STORE_USE_CACHE_MODIFIERS
+#undef ROCPRIM_THREAD_STORE_USE_CACHE_MODIFIERS
+#endif
+
+#define __HIP_PLATFORM_AMD__
+
+// CHIP-SPV temporary kludges // END //
 
 #endif // ROCPRIM_CONFIG_HPP_

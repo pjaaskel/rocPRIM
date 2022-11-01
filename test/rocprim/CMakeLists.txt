@@ -253,16 +253,20 @@ add_rocprim_test_parallel("rocprim.device_radix_sort" test_device_radix_sort.cpp
 add_rocprim_test("rocprim.device_reduce_by_key" test_device_reduce_by_key.cpp)
 add_rocprim_test("rocprim.device_reduce" test_device_reduce.cpp)
 add_rocprim_test("rocprim.device_run_length_encode" test_device_run_length_encode.cpp)
-add_rocprim_test("rocprim.device_scan" test_device_scan.cpp)
+#Crashes in llvm-spirv's switch..case validation.
+#add_rocprim_test("rocprim.device_scan" test_device_scan.cpp)
 add_rocprim_test_parallel("rocprim.device_segmented_radix_sort" test_device_segmented_radix_sort.cpp.in)
 add_rocprim_test("rocprim.device_segmented_reduce" test_device_segmented_reduce.cpp)
-add_rocprim_test("rocprim.device_segmented_scan" test_device_segmented_scan.cpp)
+#Crashes in llvm-spirv's switch..case validation.
+#add_rocprim_test("rocprim.device_segmented_scan" test_device_segmented_scan.cpp)
 add_rocprim_test("rocprim.device_select" test_device_select.cpp)
 add_rocprim_test("rocprim.device_transform" test_device_transform.cpp)
 add_rocprim_test("rocprim.discard_iterator" test_discard_iterator.cpp)
 add_rocprim_test("rocprim.reverse_iterator" test_reverse_iterator.cpp)
 if(NOT USE_HIP_CPU)
-  add_rocprim_test("rocprim.texture_cache_iterator" test_texture_cache_iterator.cpp)
+  #Crashes CHIP-SPV:
+  #opt: ... HipTextureLowering.cpp:459: bool (anonymous namespace)::lowerTextureFunctions(llvm::Module &): Assertion `false && "Unsupported texture function use."' failed
+  #add_rocprim_test("rocprim.texture_cache_iterator" test_texture_cache_iterator.cpp)
 endif()
 add_rocprim_test("rocprim.thread" test_thread.cpp)
 add_rocprim_test("rocprim.thread_algos" test_thread_algos.cpp)

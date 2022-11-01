@@ -113,6 +113,10 @@ template<class T, int dpp_ctrl, int row_mask = 0xf, int bank_mask = 0xf, bool bo
 ROCPRIM_DEVICE ROCPRIM_INLINE
 T warp_move_dpp(const T& input)
 {
+#if 1
+  printf("ERR warp_move_dpp unimplemented!\n");
+  return T();
+#else  
     return detail::warp_shuffle_op(
         input,
         [=](int v) -> int
@@ -130,6 +134,7 @@ T warp_move_dpp(const T& input)
 #endif
         }
     );
+#endif    
 }
 
 /// \brief Swizzle for any data type.
@@ -142,6 +147,10 @@ template<class T, int mask>
 ROCPRIM_DEVICE ROCPRIM_INLINE
 T warp_swizzle(const T& input)
 {
+#if 1
+  printf("ERR warp_swizzle unimplemented\n");
+  return T();
+#else 
     return detail::warp_shuffle_op(
         input,
         [=](int v) -> int
@@ -149,6 +158,7 @@ T warp_swizzle(const T& input)
             return ::__builtin_amdgcn_ds_swizzle(v, mask);
         }
     );
+#endif    
 }
 
 } // end namespace detail
@@ -175,7 +185,7 @@ T warp_shuffle(const T& input, const int src_lane, const int width = device_warp
         input,
         [=](int v) -> int
         {
-            return __shfl(v, src_lane, width);
+            return __shfl(v, src_lane);
         }
     );
 }
@@ -200,7 +210,7 @@ T warp_shuffle_up(const T& input, const unsigned int delta, const int width = de
         input,
         [=](int v) -> int
         {
-            return __shfl_up(v, delta, width);
+            return __shfl_up(v, delta);
         }
     );
 }
@@ -225,7 +235,7 @@ T warp_shuffle_down(const T& input, const unsigned int delta, const int width = 
         input,
         [=](int v) -> int
         {
-            return __shfl_down(v, delta, width);
+            return __shfl_down(v, delta);
         }
     );
 }
@@ -249,7 +259,7 @@ T warp_shuffle_xor(const T& input, const int lane_mask, const int width = device
         input,
         [=](int v) -> int
         {
-            return __shfl_xor(v, lane_mask, width);
+            return __shfl_xor(v, lane_mask);
         }
     );
 }

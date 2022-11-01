@@ -69,7 +69,7 @@ unsigned int host_warp_size()
 ROCPRIM_DEVICE ROCPRIM_INLINE
 constexpr unsigned int device_warp_size()
 {
-    return warpSize;
+    return 32;
 }
 
 /// \brief Returns flat size of a multidimensional block (tile).
@@ -93,7 +93,9 @@ ROCPRIM_DEVICE ROCPRIM_INLINE
 unsigned int lane_id()
 {
 #ifndef __HIP_CPU_RT__
-    return ::__lane_id();
+  return ((threadIdx.z * blockDim.y * blockDim.x)
+        + (threadIdx.y * blockDim.x)
+	  + threadIdx.x) % warpSize;
 #else
     using namespace hip::detail;
     return id(Fiber::this_fiber()) % warpSize;
@@ -211,7 +213,8 @@ void syncthreads()
 ROCPRIM_DEVICE ROCPRIM_INLINE
 void wave_barrier()
 {
-    __builtin_amdgcn_wave_barrier();
+  printf("__builtin_amdgcn_wave_barrier() to implement!\n");
+  //__builtin_amdgcn_wave_barrier();
 }
 
 namespace detail

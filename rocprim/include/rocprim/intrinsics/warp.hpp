@@ -46,6 +46,10 @@ lane_mask_type ballot(int predicate)
 ROCPRIM_DEVICE ROCPRIM_INLINE
 unsigned int masked_bit_count(lane_mask_type x, unsigned int add = 0)
 {
+#if 1
+  printf("masked_bit_count unimplemented\n");
+  return 0;
+#else
     int c;
     #ifndef __HIP_CPU_RT__
         #if __AMDGCN_WAVEFRONT_SIZE == 32
@@ -70,6 +74,7 @@ unsigned int masked_bit_count(lane_mask_type x, unsigned int add = 0)
         c = static_cast<unsigned int>(bits.count()) + add;
     #endif
     return c;
+#endif    
 }
 
 namespace detail
