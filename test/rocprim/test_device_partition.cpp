@@ -29,6 +29,8 @@
 // required test headers
 #include "test_utils_types.hpp"
 
+#include <array>
+
 // Params for tests
 template<
     class InputType,

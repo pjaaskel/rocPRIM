@@ -26,6 +26,7 @@
 #include <locale>
 #include <string>
 #include <limits>
+#include <array>
 
 // Google Benchmark
 #include "benchmark/benchmark.h"
