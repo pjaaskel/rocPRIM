@@ -113,6 +113,10 @@ template<class T, int dpp_ctrl, int row_mask = 0xf, int bank_mask = 0xf, bool bo
 ROCPRIM_DEVICE ROCPRIM_INLINE
 T warp_move_dpp(const T& input)
 {
+#if 1
+  printf("ERR warp_move_dpp unimplemented!\n");
+  return T();
+#else  
     return detail::warp_shuffle_op(
         input,
         [=](int v) -> int
@@ -130,6 +134,7 @@ T warp_move_dpp(const T& input)
 #endif
         }
     );
+#endif    
 }
 
 /// \brief Swizzle for any data type.
@@ -142,6 +147,10 @@ template<class T, int mask>
 ROCPRIM_DEVICE ROCPRIM_INLINE
 T warp_swizzle(const T& input)
 {
+#if 1
+  printf("ERR warp_swizzle unimplemented\n");
+  return T();
+#else 
     return detail::warp_shuffle_op(
         input,
         [=](int v) -> int
@@ -149,6 +158,7 @@ T warp_swizzle(const T& input)
             return ::__builtin_amdgcn_ds_swizzle(v, mask);
         }
     );
+#endif    
 }
 
 } // end namespace detail
