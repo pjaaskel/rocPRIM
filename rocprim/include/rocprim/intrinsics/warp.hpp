@@ -47,8 +47,9 @@ lane_mask_type ballot(int predicate)
 ROCPRIM_DEVICE ROCPRIM_INLINE
 unsigned int masked_bit_count(lane_mask_type x, unsigned int add = 0)
 {
-#if 1
+#if defined(__HIP_PLATFORM_SPIRV__)
   printf("masked_bit_count unimplemented\n");
+  abort();
   return 0;
 #else
     int c;

@@ -69,7 +69,7 @@ unsigned int host_warp_size()
 ROCPRIM_DEVICE ROCPRIM_INLINE
 constexpr unsigned int device_warp_size()
 {
-    return 32;
+    return warpSize;
 }
 
 /// \brief Returns flat size of a multidimensional block (tile).
@@ -88,20 +88,6 @@ unsigned int flat_tile_size()
 
 // IDs
 
-/// \brief Returns thread identifier in a warp.
-ROCPRIM_DEVICE ROCPRIM_INLINE
-unsigned int lane_id()
-{
-#ifndef __HIP_CPU_RT__
-  return ((threadIdx.z * blockDim.y * blockDim.x)
-        + (threadIdx.y * blockDim.x)
-	  + threadIdx.x) % warpSize;
-#else
-    using namespace hip::detail;
-    return id(Fiber::this_fiber()) % warpSize;
-#endif
-}
-
 /// \brief Returns flat (linear, 1D) thread identifier in a multidimensional block (tile).
 ROCPRIM_DEVICE ROCPRIM_INLINE
 unsigned int flat_block_thread_id()
@@ -109,6 +95,18 @@ unsigned int flat_block_thread_id()
     return (threadIdx.z * blockDim.y * blockDim.x)
         + (threadIdx.y * blockDim.x)
         + threadIdx.x;
+}
+
+/// \brief Returns thread identifier in a warp.
+ROCPRIM_DEVICE ROCPRIM_INLINE
+unsigned int lane_id()
+{
+#if !defined(__HIP_CPU_RT__)
+    return ::__lane_id();
+#else
+    using namespace hip::detail;
+    return id(Fiber::this_fiber()) % warpSize;
+#endif
 }
 
 /// \brief Returns flat (linear, 1D) thread identifier in a multidimensional block (tile). Use template parameters to optimize 1D or 2D kernels.
@@ -224,11 +222,14 @@ void syncthreads()
 ROCPRIM_DEVICE ROCPRIM_INLINE
 void wave_barrier()
 {
+#if defined(__HIP_PLATFORM_SPIRV__)
+  printf("__builtin_amdgcn_wave_barrier() to implement!\n");
+  abort();
+#else
     __builtin_amdgcn_fence(__ATOMIC_RELEASE, "wavefront");
     __builtin_amdgcn_wave_barrier();
     __builtin_amdgcn_fence(__ATOMIC_ACQUIRE, "wavefront");
-
-  printf("__builtin_amdgcn_wave_barrier() to implement!\n");
+#endif
 }
 
 namespace detail
