@@ -131,6 +131,7 @@ enum class target_arch : unsigned int
     gfx908  = 908,
     gfx90a  = 910,
     gfx1030 = 1030,
+    chipspv = 10000, // The generic OpenCL/SPIR-V target via CHIP-SPV.
     unknown = std::numeric_limits<unsigned int>::max(),
 };
 
@@ -202,6 +203,8 @@ constexpr target_arch device_target_arch()
     // The terminating zero is not counted in the length of the string
     return get_target_arch_from_name(__amdgcn_processor__,
                                      sizeof(__amdgcn_processor__) - sizeof('\0'));
+#elif defined(__HIP_PLATFORM_SPIRV__)
+    return target_arch::chipspv;
 #else
     return target_arch::unknown;
 #endif
@@ -226,6 +229,8 @@ auto dispatch_target_arch(const target_arch target_arch)
             return Config::template architecture_config<target_arch::gfx90a>::params;
         case target_arch::gfx1030:
             return Config::template architecture_config<target_arch::gfx1030>::params;
+        case target_arch::chipspv:
+            return Config::template architecture_config<target_arch::chipspv>::params;
         case target_arch::invalid:
             assert(false && "Invalid target architecture selected at runtime.");
     }
@@ -294,7 +299,7 @@ inline hipError_t get_device_from_stream(const hipStream_t stream, int& device_i
         return hipSuccess;
     }
 
-#ifdef __HIP_PLATFORM_AMD__
+#if defined(__HIP_PLATFORM_AMD__) || defined(__HIP_PLATFORM_SPIRV__)
     device_id = hipGetStreamDeviceId(stream);
     if(device_id < 0)
     {

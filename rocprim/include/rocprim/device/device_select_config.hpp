@@ -139,6 +139,21 @@ struct select_config_1030
     >;
 };
 
+template<class Value>
+struct select_config_chipspv
+{
+    static constexpr unsigned int item_scale =
+        ::rocprim::detail::ceiling_div<unsigned int>(sizeof(Value), sizeof(int));
+
+    using type = select_config<
+        limit_block_size<256U, sizeof(Value), ROCPRIM_WARP_SIZE_32>::value,
+        ::rocprim::max(1u, 15u / item_scale),
+        ::rocprim::block_load_method::block_load_direct,
+        ::rocprim::block_load_method::block_load_direct,
+        ::rocprim::block_load_method::block_load_direct,
+        ::rocprim::block_scan_algorithm::reduce_then_scan
+    >;
+};
 
 template<unsigned int TargetArch, class Key, class /*Value*/>
 struct default_select_config
@@ -148,6 +163,7 @@ struct default_select_config
         select_arch_case<900, select_config_900<Key>>,
         select_arch_case<ROCPRIM_ARCH_90a, select_config_90a<Key>>,
         select_arch_case<1030, select_config_1030<Key>>,
+        select_arch_case<10000, select_config_chipspv<Key>>,
         select_config_803<Key>
     > { };
 
