@@ -223,8 +223,7 @@ ROCPRIM_DEVICE ROCPRIM_INLINE
 void wave_barrier()
 {
 #if defined(__HIP_PLATFORM_SPIRV__)
-  printf("__builtin_amdgcn_wave_barrier() to implement!\n");
-  abort();
+    __syncwarp();
 #else
     __builtin_amdgcn_fence(__ATOMIC_RELEASE, "wavefront");
     __builtin_amdgcn_wave_barrier();

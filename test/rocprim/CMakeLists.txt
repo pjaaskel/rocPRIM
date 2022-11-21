@@ -225,7 +225,15 @@ add_rocprim_test("rocprim.temporary_storage_partitioning" test_temporary_storage
 add_rocprim_test_parallel("rocprim.block_adjacent_difference" test_block_adjacent_difference.cpp.in)
 add_rocprim_test("rocprim.block_discontinuity" test_block_discontinuity.cpp)
 add_rocprim_test("rocprim.block_exchange" test_block_exchange.cpp)
-add_rocprim_test("rocprim.block_histogram" test_block_histogram.cpp)
+
+# GPU: CL_OUT_OF_RESOURCES at build time.
+# CPU: SPIRV module requires unsupported capability 65
+# Crashes at build time:
+# opt: /home/pjaaskel/src/llvm-project/llvm/include/llvm/Support/Casting.h:578: decltype(auto) llvm::cast(From*) [with To = llvm::Constant; From = llvm::Value]: Assertion `isa<To>(Val) && "cast<Ty>() argument of incompatible type!"' failed.
+# add_rocprim_test("rocprim.block_histogram" test_block_histogram.cpp)
+
+# GPU: CL_OUT_OF_RESOURCES at build time.
+# CPU: 6 failed out of 294 (all half precision tests).
 add_rocprim_test("rocprim.block_load_store" test_block_load_store.cpp)
 add_rocprim_test("rocprim.block_sort_merge" test_block_sort_merge.cpp)
 add_rocprim_test("rocprim.block_sort_merge_stable" test_block_sort_merge_stable.cpp)

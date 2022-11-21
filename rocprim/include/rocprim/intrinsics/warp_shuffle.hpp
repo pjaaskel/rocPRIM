@@ -279,11 +279,16 @@ ROCPRIM_DEVICE ROCPRIM_INLINE T warp_permute(const T&  input,
                                              const int dst_lane,
                                              const int width = device_warp_size())
 {
+#ifdef __HIP_PLATFORM_SPIRV__
+    printf("UNIMPLEMENTED: warp_permute for CHIP-SPV.\n");
+    return T();
+#else
     const int self  = lane_id();
     const int index = (dst_lane + (self & ~(width - 1))) << 2;
     return detail::warp_shuffle_op(input,
                                    [=](int v) -> int
                                    { return __builtin_amdgcn_ds_permute(index, v); });
+#endif
 }
 
 END_ROCPRIM_NAMESPACE
