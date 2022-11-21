@@ -218,8 +218,9 @@ ROCPRIM_DEVICE ROCPRIM_INLINE
 void wave_barrier()
 {
 #if defined(__HIP_PLATFORM_SPIRV__)
-  printf("__builtin_amdgcn_wave_barrier() to implement!\n");
-  abort();
+// TODO: Define a __synchwarp in CHIPSPV. Can be NOP for lock-step
+// targets, but we need to propagate it through SPIR-V due to the target
+// being unknown at compile time.
 #else
   __atomic_work_item_fence(__CLK_LOCAL_MEM_FENCE,
 			   __memory_order_release,

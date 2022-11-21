@@ -60,6 +60,10 @@ using WarpStoreTestParams = ::testing::Types<
     Params<int, 4U, 32U, ::rocprim::warp_store_method::warp_store_direct>,
     Params<int, 4U, 32U, ::rocprim::warp_store_method::warp_store_striped>,
     Params<int, 4U, 32U, ::rocprim::warp_store_method::warp_store_vectorize>,
+// The disabled tests work, but trigger some limit in Intel SPIR-V build,
+// making clBuildProgram() return with CL_OUT_OF_RESOURCES. That is,
+// it doesn't support large enough input SPIR-Vs.
+#ifndef __HIP_PLATFORM_SPIRV__
     Params<int, 4U, 32U, ::rocprim::warp_store_method::warp_store_transpose>,
 
     Params<int, 5U, 32U, ::rocprim::warp_store_method::warp_store_direct>,
@@ -71,11 +75,12 @@ using WarpStoreTestParams = ::testing::Types<
     Params<int, 4U, 64U, ::rocprim::warp_store_method::warp_store_striped>,
     Params<int, 4U, 64U, ::rocprim::warp_store_method::warp_store_vectorize>,
     Params<int, 4U, 64U, ::rocprim::warp_store_method::warp_store_transpose>,
-
+#endif
     Params<float2, 4U, 32U, ::rocprim::warp_store_method::warp_store_direct>,
     Params<float2, 4U, 32U, ::rocprim::warp_store_method::warp_store_striped>,
     Params<float2, 4U, 32U, ::rocprim::warp_store_method::warp_store_vectorize>,
     Params<float2, 4U, 32U, ::rocprim::warp_store_method::warp_store_transpose>
+
 >;
 
 template<
@@ -172,7 +177,7 @@ TYPED_TEST(WarpStoreTest, WarpLoad)
     constexpr unsigned int warp_size = TestFixture::params::warp_size;
     constexpr ::rocprim::warp_store_method method = TestFixture::params::method;
     constexpr unsigned int items_per_thread = TestFixture::params::items_per_thread;
-    constexpr unsigned int block_size = 1024;
+    constexpr unsigned int block_size = 512;
     constexpr unsigned int items_count = items_per_thread * block_size;
 
     SKIP_IF_UNSUPPORTED_WARP_SIZE(warp_size);
@@ -223,7 +228,7 @@ TYPED_TEST(WarpStoreTest, WarpStoreGuarded)
     constexpr unsigned warp_size = TestFixture::params::warp_size;
     constexpr ::rocprim::warp_store_method method = TestFixture::params::method;
     constexpr unsigned items_per_thread = 4;
-    constexpr unsigned block_size = 1024;
+    constexpr unsigned block_size = 512;
     constexpr unsigned items_count = items_per_thread * block_size;
     constexpr int valid_items = warp_size / 4;
 
