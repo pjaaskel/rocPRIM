@@ -113,10 +113,6 @@ template<class T, int dpp_ctrl, int row_mask = 0xf, int bank_mask = 0xf, bool bo
 ROCPRIM_DEVICE ROCPRIM_INLINE
 T warp_move_dpp(const T& input)
 {
-#if 1
-  printf("ERR warp_move_dpp unimplemented!\n");
-  return T();
-#else  
     return detail::warp_shuffle_op(
         input,
         [=](int v) -> int
@@ -127,14 +123,13 @@ T warp_move_dpp(const T& input)
             //       __builtin_amdgcn_update_dpp, hence fail to parse the template altogether. (Except MSVC
             //       because even using /permissive- they somehow still do delayed parsing of the body of
             //       function templates, even though they pinky-swear they don't.)
-#if !defined(__HIP_CPU_RT__)
+#if !defined(__HIP_CPU_RT__) && !defined(__HIP_PLATFORM_SPIRV__)
             return ::__builtin_amdgcn_mov_dpp(v, dpp_ctrl, row_mask, bank_mask, bound_ctrl);
 #else
             return v;
 #endif
         }
     );
-#endif    
 }
 
 /// \brief Swizzle for any data type.
@@ -147,7 +142,7 @@ template<class T, int mask>
 ROCPRIM_DEVICE ROCPRIM_INLINE
 T warp_swizzle(const T& input)
 {
-#if 1
+#ifdef __HIP_PLATFORM_SPIRV__
   printf("ERR warp_swizzle unimplemented\n");
   return T();
 #else 

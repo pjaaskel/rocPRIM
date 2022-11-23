@@ -61,8 +61,10 @@
     #define ROCPRIM_FORCE_INLINE __attribute__((always_inline))
 #endif
 
-#ifndef ROCPRIM_DISABLE_DPP
+#if !defined(ROCPRIM_DISABLE_DPP) && !defined(__HIP_PLATFORM_SPIRV__)
     #define ROCPRIM_DETAIL_USE_DPP true
+#else
+    #define ROCPRIM_DETAIL_USE_DPP false
 #endif
 
 #ifdef ROCPRIM_DISABLE_LOOKBACK_SCAN

@@ -148,10 +148,10 @@ struct select_config_chipspv
     using type = select_config<
         limit_block_size<256U, sizeof(Value), ROCPRIM_WARP_SIZE_32>::value,
         ::rocprim::max(1u, 15u / item_scale),
-        ::rocprim::block_load_method::block_load_direct,
-        ::rocprim::block_load_method::block_load_direct,
-        ::rocprim::block_load_method::block_load_direct,
-        ::rocprim::block_scan_algorithm::reduce_then_scan
+        ::rocprim::block_load_method::block_load_transpose,
+        ::rocprim::block_load_method::block_load_transpose,
+        ::rocprim::block_load_method::block_load_transpose,
+        ::rocprim::block_scan_algorithm::using_warp_scan
     >;
 };
 
