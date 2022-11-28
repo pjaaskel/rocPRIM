@@ -180,7 +180,7 @@ T warp_shuffle(const T& input, const int src_lane, const int width = device_warp
         input,
         [=](int v) -> int
         {
-            return __shfl(v, src_lane);
+            return __shfl(v, src_lane, width);
         }
     );
 }
@@ -205,7 +205,7 @@ T warp_shuffle_up(const T& input, const unsigned int delta, const int width = de
         input,
         [=](int v) -> int
         {
-            return __shfl_up(v, delta);
+            return __shfl_up(v, delta, width);
         }
     );
 }
@@ -230,7 +230,7 @@ T warp_shuffle_down(const T& input, const unsigned int delta, const int width = 
         input,
         [=](int v) -> int
         {
-            return __shfl_down(v, delta);
+            return __shfl_down(v, delta, width);
         }
     );
 }
@@ -254,7 +254,7 @@ T warp_shuffle_xor(const T& input, const int lane_mask, const int width = device
         input,
         [=](int v) -> int
         {
-            return __shfl_xor(v, lane_mask);
+            return __shfl_xor(v, lane_mask, width);
         }
     );
 }

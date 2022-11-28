@@ -122,8 +122,6 @@
 #endif
 
 // CHIP-SPV temporary kludges // START //
-constexpr unsigned warpSize = 32;
-
 #ifdef ROCPRIM_THREAD_LOAD_USE_CACHE_MODIFIERS
 #undef ROCPRIM_THREAD_LOAD_USE_CACHE_MODIFIERS
 #endif
@@ -131,9 +129,6 @@ constexpr unsigned warpSize = 32;
 #ifdef ROCPRIM_THREAD_STORE_USE_CACHE_MODIFIERS
 #undef ROCPRIM_THREAD_STORE_USE_CACHE_MODIFIERS
 #endif
-
-#define __HIP_PLATFORM_AMD__
-
 // CHIP-SPV temporary kludges // END //
 
 #endif // ROCPRIM_CONFIG_HPP_
