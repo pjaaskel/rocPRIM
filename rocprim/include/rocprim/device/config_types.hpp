@@ -282,6 +282,11 @@ inline target_arch parse_gcn_arch(const char* arch_name)
 
 inline hipError_t get_device_arch(int device_id, target_arch& arch)
 {
+#ifdef __HIP_PLATFORM_SPIRV__
+    arch = target_arch::chipspv;
+    device_id = 0;
+    return hipSuccess;
+#else
     static constexpr unsigned int   device_arch_cache_size             = 512;
     static std::atomic<target_arch> arch_cache[device_arch_cache_size] = {};
 
@@ -309,6 +314,7 @@ inline hipError_t get_device_arch(int device_id, target_arch& arch)
     arch_cache[device_id].exchange(arch, std::memory_order_relaxed);
 
     return hipSuccess;
+#endif
 }
 
 #ifndef WIN32
