@@ -259,7 +259,7 @@ T warp_shuffle_xor(const T& input, const int lane_mask, const int width = device
     );
 }
 
-/// \brief Permute items across the threads in a warp.
+/// \brief Permute items across the threads in a warp.,
 ///
 /// The value from this thread in the warp is permuted to the <tt>dst_lane</tt>-th
 /// thread in the warp. If multiple warps write to the same destination, the result
@@ -279,15 +279,36 @@ ROCPRIM_DEVICE ROCPRIM_INLINE T warp_permute(const T&  input,
                                              const int dst_lane,
                                              const int width = device_warp_size())
 {
-#ifdef __HIP_PLATFORM_SPIRV__
-    printf("UNIMPLEMENTED: warp_permute for CHIP-SPV.\n");
-    return T();
-#else
     const int self  = lane_id();
-    const int index = (dst_lane + (self & ~(width - 1))) << 2;
+#ifdef __HIP_PLATFORM_SPIRV__
+    int src_i = -1;
+    for (int i = 0; i < width; ++i)
+    {
+      // Find the source lane for this source. TBD: There must be
+      // a faster way. Most likely even using shared mem for storing
+      // the indices is faster in most cases than up to 64 of shuffles...
+      int found_dst_i = __shfl(dst_lane, i, width) % width;
+      if (found_dst_i == self)
+        src_i = i;
+      // We cannot break out early from the loop as it causes non-uniform
+      // shuffles.
+    }
+    // Do a basic shuffle from the found source even though src_i might
+    // be -1 to avoid a divering shuffle.
     return detail::warp_shuffle_op(input,
                                    [=](int v) -> int
-                                   { return __builtin_amdgcn_ds_permute(index, v); });
+                                   {
+                                     int val = __shfl(v, src_i, width);
+                                     if (src_i == -1)
+                                       return 0;
+                                     else
+                                       return val;
+                                   });
+#else
+    const int dst_i = (dst_lane + (self & ~(width - 1))) << 2;
+    return detail::warp_shuffle_op(input,
+                                   [=](int v) -> int
+                                   { return __builtin_amdgcn_ds_permute(dst_i, v); });
 #endif
 }
 
