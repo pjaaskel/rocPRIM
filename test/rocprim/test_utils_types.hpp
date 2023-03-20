@@ -158,7 +158,11 @@ typedef ::testing::Types<
 
 typedef ::testing::Types<
     block_param_type(float, long),
+#ifndef __HIP_PLATFORM_SPIRV__
+    // Some CHIP-SPV targets do not support doubles. We should runtime check
+    // for this.
     block_param_type(double, test_utils::custom_test_type<double>),
+#endif
     block_param_type(rocprim::half, rocprim::half),
     block_param_type(rocprim::bfloat16, rocprim::bfloat16)
 > BlockParamsFloating;
@@ -171,7 +175,9 @@ typedef ::testing::Types<
 
 typedef ::testing::Types<
     block_param_type(float, char),
+#ifndef __HIP_PLATFORM_SPIRV__
     block_param_type(double, unsigned int),
+#endif
     block_param_type(rocprim::half, int),
     block_param_type(rocprim::bfloat16, int)
 > BlockDiscParamsFloating;
@@ -182,16 +188,21 @@ typedef ::testing::Types<
 
 typedef ::testing::Types<
     block_param_type(float, long),
+#ifndef __HIP_PLATFORM_SPIRV__
     block_param_type(double, test_utils::custom_test_type<double>),
+#endif
     block_param_type(rocprim::half, rocprim::half)
 > BlockExchParamsFloating;
 
 typedef ::testing::Types<
     block_param_type(float, float),
     block_param_type(float, unsigned int),
-    block_param_type(float, unsigned long long),
+    block_param_type(float, unsigned long long)
+#ifndef __HIP_PLATFORM_SPIRV__
+  ,
     block_param_type(double, float),
     block_param_type(double, unsigned long long)
+#endif
 > BlockHistAtomicParamsFloating;
 
 typedef ::testing::Types<
