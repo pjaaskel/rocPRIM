@@ -91,8 +91,13 @@
 // * 906 (gfx906)
 // * 908 (gfx908)
 // * 910 (gfx90a)
-#ifndef ROCPRIM_TARGET_ARCH
-    #define ROCPRIM_TARGET_ARCH 0
+// * 10000 (chipspv)
+#ifdef __HIP_PLATFORM_SPIRV__
+    #define ROCPRIM_TARGET_ARCH 10000
+#else
+    #ifndef ROCPRIM_TARGET_ARCH
+         #define ROCPRIM_TARGET_ARCH 0
+    #endif
 #endif
 
 #if (__gfx1010__ || __gfx1011__ || __gfx1012__ || __gfx1030__ || __gfx1031__ || __gfx1100__ || __gfx1101__ || __gfx1102__)
@@ -125,7 +130,8 @@
 #define ROCPRIM_IF_CONSTEXPR
 #endif
 
-// CHIP-SPV temporary kludges // START //
+#ifdef __HIP_PLATFORM_SPIRV__
+
 #ifdef ROCPRIM_THREAD_LOAD_USE_CACHE_MODIFIERS
 #undef ROCPRIM_THREAD_LOAD_USE_CACHE_MODIFIERS
 #endif
@@ -133,6 +139,7 @@
 #ifdef ROCPRIM_THREAD_STORE_USE_CACHE_MODIFIERS
 #undef ROCPRIM_THREAD_STORE_USE_CACHE_MODIFIERS
 #endif
-// CHIP-SPV temporary kludges // END //
+
+#endif
 
 #endif // ROCPRIM_CONFIG_HPP_
