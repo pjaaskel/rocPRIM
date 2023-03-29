@@ -286,6 +286,7 @@ hipError_t partition_impl(void * temporary_storage,
         if(debug_synchronous) start = std::chrono::high_resolution_clock::now();
 
         grid_size = current_number_of_blocks;
+        printf("grid_size %d\n", grid_size);
 
         if (prop.gcnArch == 908 && asicRevision < 2)
         {
@@ -345,6 +346,8 @@ hipError_t partition_impl(void * temporary_storage,
                                  stream,
                                  debug_synchronous);
     if (error != hipSuccess) return error;
+
+    printf("select_count_output %d is_three_way %d\n", *selected_count_output, is_three_way);
 
     return hipSuccess;
 }

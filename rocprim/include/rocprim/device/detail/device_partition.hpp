@@ -329,17 +329,32 @@ ROCPRIM_DEVICE ROCPRIM_INLINE auto partition_scatter(ValueType (&values)[ItemsPe
 {
     constexpr unsigned int items_per_block = BlockSize * ItemsPerThread;
 
+    printf("%s %d\n", __func__,  __LINE__);
     // Scatter selected/rejected values to shared memory
     auto scatter_storage = storage.get();
+    printf("%s %d\n", __func__,  __LINE__);
     ROCPRIM_UNROLL
     for(unsigned int i = 0; i < ItemsPerThread; i++)
     {
+        printf("%s %d\n", __func__,  __LINE__);
         unsigned int item_index = (flat_block_thread_id * ItemsPerThread) + i;
+        printf("%s %d\n", __func__,  __LINE__);
         unsigned int selected_item_index = output_indices[i] - selected_prefix;
+        printf("%s %d\n", __func__,  __LINE__);
         unsigned int rejected_item_index = (item_index - selected_item_index) + selected_in_block;
         // index of item in scatter_storage
+        printf("%s %d\n", __func__,  __LINE__);
         unsigned int scatter_index = is_selected[i] ? selected_item_index : rejected_item_index;
+        printf("is_selected %d selected_item_index %d rejected_item_index %d output_index %d "
+               "selected_prefix %d\n",
+               is_selected[i], selected_item_index, rejected_item_index, output_indices[i],
+               selected_prefix);
+        printf("%s %d\n", __func__,  __LINE__);
+        printf("%s %d %p\n", __func__,  __LINE__, scatter_storage);
+        printf("%s %d %p scatter_index %d i %d\n",
+               __func__,  __LINE__, values, scatter_index, i);
         scatter_storage[scatter_index] = values[i];
+        printf("%s %d\n", __func__,  __LINE__);
     }
     ::rocprim::syncthreads(); // sync threads to reuse shared memory
 
@@ -349,6 +364,7 @@ ROCPRIM_DEVICE ROCPRIM_INLINE auto partition_scatter(ValueType (&values)[ItemsPe
         const unsigned int item_index = i * BlockSize + flat_block_thread_id;
         reloaded_values[i]            = scatter_storage[item_index];
     }
+    printf("%s %d\n", __func__,  __LINE__);
 
     const auto calculate_scatter_index = [=](const unsigned int item_index) -> size_t
     {
@@ -357,8 +373,12 @@ ROCPRIM_DEVICE ROCPRIM_INLINE auto partition_scatter(ValueType (&values)[ItemsPe
         const size_t rejected_output_index = total_size + selected_output_index - prev_processed
                                              - flat_block_id * items_per_block - 2 * item_index
                                              + selected_in_block - 1;
-        return item_index < selected_in_block ? selected_output_index : rejected_output_index;
+        size_t ret = item_index < selected_in_block ? selected_output_index : rejected_output_index;
+        return ret;
     };
+
+    printf("%s %d\n", __func__,  __LINE__);
+
     if(is_global_last_block)
     {
         for(unsigned int i = 0; i < ItemsPerThread; i++)
@@ -366,7 +386,11 @@ ROCPRIM_DEVICE ROCPRIM_INLINE auto partition_scatter(ValueType (&values)[ItemsPe
             const unsigned int item_index = i * BlockSize + flat_block_thread_id;
             if(item_index < valid_in_global_last_block)
             {
-                output[calculate_scatter_index(item_index)] = reloaded_values[i];
+              printf("%s %d\n", __func__,  __LINE__);
+              size_t idx = calculate_scatter_index(item_index);
+              printf("%s %d\n", __func__,  __LINE__);
+              output[idx] = reloaded_values[i];
+              printf("%s %d\n", __func__,  __LINE__);
             }
         }
     }
@@ -375,7 +399,10 @@ ROCPRIM_DEVICE ROCPRIM_INLINE auto partition_scatter(ValueType (&values)[ItemsPe
         for(unsigned int i = 0; i < ItemsPerThread; i++)
         {
             const unsigned int item_index               = i * BlockSize + flat_block_thread_id;
-            output[calculate_scatter_index(item_index)] = reloaded_values[i];
+            /* reloaded_values[i] jollekin indeksille ei alustettu */
+            size_t idx = calculate_scatter_index(item_index);
+            //printf("%s %d i %d to %lu\n", __func__, __LINE__, i, idx);
+            output[idx] = reloaded_values[i];
         }
     }
 }
@@ -627,6 +654,8 @@ ROCPRIM_DEVICE ROCPRIM_FORCE_INLINE void
     constexpr auto items_per_thread = Config::items_per_thread;
     constexpr unsigned int items_per_block = block_size * items_per_thread;
 
+    //printf ("block_size %d items_per_thread %d\n", block_size, items_per_thread);
+
     using offset_type = typename OffsetLookbackScanState::value_type;
     using key_type = typename std::iterator_traits<KeyIterator>::value_type;
     using value_type = typename std::iterator_traits<ValueIterator>::value_type;
@@ -690,11 +719,13 @@ ROCPRIM_DEVICE ROCPRIM_FORCE_INLINE void
     // This makes the load a vector load instead of scalar because (quoting llvm's amdgpu backend)
     // "Scalar memory operations are only used to access memory that is proven to not change during
     // the execution of the kernel dispatch".
-    size_t prev_selected_count_values[sizeof...(UnaryPredicates)]{};
+    size_t prev_selected_count_values[sizeof...(UnaryPredicates)]{}; // sizeof...(UnaryPredicates)
     load_selected_count(prev_selected_count, prev_selected_count_values);
 
     const auto flat_block_thread_id = ::rocprim::detail::block_thread_id<0>();
     const auto flat_block_id = ordered_bid.get(flat_block_thread_id, storage.ordered_bid);
+    if (flat_block_thread_id == 0)
+      printf("flat_block_id %d block_id %d starting\n", flat_block_id, ::rocprim::detail::block_id<0>());
     const auto block_offset         = flat_block_id * items_per_block;
     const unsigned int valid_in_global_last_block
         = total_size - prev_processed - items_per_block * (number_of_blocks - 1);
@@ -728,6 +759,7 @@ ROCPRIM_DEVICE ROCPRIM_FORCE_INLINE void
     // input value and selection predicate, or generate them using
     // block_discontinuity primitive
     const bool is_first_block = flat_block_id == 0 && prev_processed == 0;
+
     partition_block_load_flags<SelectMethod,
                                block_size,
                                block_load_flag_type,
@@ -742,7 +774,6 @@ ROCPRIM_DEVICE ROCPRIM_FORCE_INLINE void
                                                              flat_block_thread_id,
                                                              is_global_last_block,
                                                              valid_in_global_last_block);
-
     // Convert true/false is_selected flags to 0s and 1s
     convert_selected_to_indices(output_indices, is_selected);
 
@@ -766,6 +797,7 @@ ROCPRIM_DEVICE ROCPRIM_FORCE_INLINE void
         if(flat_block_thread_id == 0)
         {
             offset_scan_state.set_complete(flat_block_id, selected_in_block);
+            printf("offset_scan_state set complete\n");
         }
         ::rocprim::syncthreads(); // sync threads to reuse shared memory
     }
@@ -789,6 +821,9 @@ ROCPRIM_DEVICE ROCPRIM_FORCE_INLINE void
 
         selected_in_block = prefix_op.get_reduction();
         selected_prefix   = prefix_op.get_prefix();
+
+        printf("%s %d selected_in_block %d\n", __func__,  __LINE__, selected_in_block);
+        printf("%s %d selected_prefix %d\n", __func__,  __LINE__, selected_prefix);
     }
 
     // Scatter selected and rejected values
@@ -847,10 +882,16 @@ ROCPRIM_DEVICE ROCPRIM_FORCE_INLINE void
                                                     prev_processed);
     }
 
+    if (flat_block_thread_id == 0)
+      printf("flat_block_id %d exiting...\n", flat_block_id);
+
+    printf("BLOCK LOAD VALUE TYPE ENDS tid %d\n", flat_block_thread_id);
+
     // Last block in grid stores number of selected values
     const bool is_last_block = flat_block_id == (number_of_blocks - 1);
     if(is_last_block && flat_block_thread_id == 0)
     {
+        printf("last block %d storing selected values\n\n", flat_block_id);
         store_selected_count(selected_count,
                              prev_selected_count_values,
                              selected_prefix,

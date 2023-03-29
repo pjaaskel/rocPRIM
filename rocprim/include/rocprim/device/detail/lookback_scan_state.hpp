@@ -392,7 +392,7 @@ public:
             T, ::rocprim::device_warp_size(), false
         >;
 
-        T block_prefix;
+        T block_prefix = 0;
         scan_state_.get(block_id, flag, block_prefix);
 
         auto headflag_scan_op = headflag_scan_op_type(scan_op_);
@@ -409,8 +409,15 @@ public:
     T get_prefix()
     {
         flag_type flag;
-        T partial_prefix;
-        unsigned int previous_block_id = block_id_ - ::rocprim::lane_id() - 1;
+        T partial_prefix = 0;
+        int previous_block_id = block_id_ - ::rocprim::lane_id() - 1;
+#if 0
+        if (previous_block_id < 0)
+          previous_block_id = 0;
+#endif
+
+        printf("block_id_ %d previous_block_id %d partial_prefix %d\n", block_id_, previous_block_id,
+               partial_prefix);
 
         // reduce last warp_size() number of prefixes to
         // get the complete prefix for this block.
@@ -421,6 +428,7 @@ public:
         while(::rocprim::detail::warp_all(flag != PREFIX_COMPLETE))
         {
             previous_block_id -= ::rocprim::device_warp_size();
+            printf("previous_block_id now %d\n", previous_block_id);
             reduce_partial_prefixes(previous_block_id, flag, partial_prefix);
             prefix = scan_op_(partial_prefix, prefix);
         }
@@ -495,7 +503,8 @@ public:
             auto prefix = prefix_op(reduction);
             if(::rocprim::lane_id() == 0)
             {
-                storage.get().block_reduction = std::move(reduction);
+                printf("Setting prefix to %d reduction %d\n", prefix, reduction);
+                storage.get().block_reduction = reduction;
                 storage.get().prefix          = prefix;
             }
             return prefix;
@@ -504,11 +513,13 @@ public:
 
     static ROCPRIM_DEVICE T get_reduction(const storage_type& storage)
     {
+      printf("%s %d\n", __func__,  __LINE__);
         return storage.get().block_reduction;
     }
 
     static ROCPRIM_DEVICE T get_prefix(const storage_type& storage)
     {
+      printf("%s %d get_prefix\n", __func__,  __LINE__);
         return storage.get().prefix;
     }
 };
@@ -543,11 +554,13 @@ public:
 
     ROCPRIM_DEVICE ROCPRIM_INLINE T get_reduction() const
     {
+      printf("%s %d\n", __func__,  __LINE__);
         return factory::get_reduction(storage);
     }
 
     ROCPRIM_DEVICE ROCPRIM_INLINE T get_prefix() const
     {
+      printf("%s %d\n", __func__,  __LINE__);
         return factory::get_prefix(storage);
     }
 
