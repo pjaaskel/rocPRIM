@@ -504,7 +504,7 @@ ROCPRIM_DEVICE ROCPRIM_INLINE void partition_scatter(ValueType (&values)[ItemsPe
         const unsigned int first_selected_item_index = output_indices[i].x - selected_prefix.x;
         const unsigned int second_selected_item_index = output_indices[i].y - selected_prefix.y
             + selected_in_block.x;
-        unsigned int scatter_index{};
+        unsigned int scatter_index = 0;
 
         if(is_selected[0][i])
         {
@@ -712,6 +712,9 @@ ROCPRIM_DEVICE ROCPRIM_FORCE_INLINE void
             typename block_scan_offset_type::storage_type scan_offsets;
         };
     } storage;
+
+    for (size_t i = 0; i < sizeof(storage); ++i)
+      *((char*)&storage + i) = 0;
 
     // For better performance this must stay before the `ordered_block_id.get` (and other writes).
     // `ordered_block_id.get` includes an atomic write and syncthreads (a memory fence) that the
