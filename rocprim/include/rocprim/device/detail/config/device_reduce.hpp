@@ -89,10 +89,9 @@ struct reduce_config_chipspv
         ::rocprim::detail::ceiling_div<unsigned int>(sizeof(Value), sizeof(int));
 
     using type = reduce_config<
-        limit_block_size<256U, sizeof(Value), ROCPRIM_WARP_SIZE_32>::value,
+        limit_block_size<256U, sizeof(Value), ROCPRIM_WARP_SIZE_64>::value,
         ::rocprim::max(1u, 16u / item_scale),
-      ::rocprim::block_reduce_algorithm::raking_reduce
-    >;
+      ::rocprim::block_reduce_algorithm::using_warp_reduce>;
 
 };
 
